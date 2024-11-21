@@ -36,6 +36,7 @@
         }
 
         .container {
+            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -46,7 +47,7 @@
 
         .counter-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Збільшити мінімальну ширину */
             grid-gap: 10px;
             width: 100%;
             max-width: 1200px; /* Задайте максимальну ширину сітки */
@@ -56,6 +57,7 @@
         .counter-item,
         .total-item,
         .percentage-item {
+            height: 120px; /* Задайте однакову висоту */
             background-color: #fff;
             padding: 10px;
             border-radius: 8px;
@@ -66,7 +68,9 @@
             font-size: 1em;
             margin-bottom: 5px;
             color: #333;
-            white-space: nowrap;
+            white-space: normal; /* Дозволяє переноси */
+            word-wrap: break-word; /* Переносить довгі слова */
+            text-align: center; /* Центрує текст */
         }
 
         .count,
@@ -237,10 +241,12 @@
           }
         @media (max-width: 768px) {
             .header {
-                font-size: 2em;
-                padding: 5px;
+                font-size: 1.8em;
+                padding: 10px;
             }
-            
+            .count, .percentage {
+                font-size: 1.2em;
+            }
             .key-label {
                 font-size: 0.8em;
             }
@@ -254,8 +260,9 @@
                 padding: 8px 15px;
             }
             
-            .counter-grid {
-                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Менший мінімальний розмір елементів */
+           .counter-grid {
+                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Зменшена мінімальна ширина */
+                grid-gap: 10px;
             }
         }
     </style>
