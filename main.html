@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="ua">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лічильник лейкоцитарної формули</title>
+    <style>
+        /* Основні стилі сторінки */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            /* Вертикальне розташування елементів */
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+            transition: background-color 0.3s;
+            padding-top: 20px;
+            /* Трохи місця над заголовком */
+        }
+
+        .header {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #4CAF50;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+            padding: 10px 0;
+            width: 100%;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 1200px;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .counter-grid {
+            display: grid;
+            grid-template-columns: repeat(11, 100px) 140px;
+            grid-gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .counter-item,
+        .total-item,
+        .percentage-item {
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .key-label {
+            font-size: 1em;
+            margin-bottom: 5px;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        .count,
+        .percentage {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
+        .total-label {
+            font-size: 1.2em;
+            color: #333;
+        }
+
+        .switch-container {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            font-size: 1.5em;
+        }
+
+        .switch-option {
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .switch-selected {
+            background-color: #4CAF50;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .settings-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        /* Стилі для pop-up */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+        }
+
+        .popup-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            width: 350px;
+            text-align: center;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .popup-overlay.show {
+            visibility: visible;
+        }
+
+        .popup-close {
+            cursor: pointer;
+            color: red;
+            font-weight: bold;
+            float: right;
+            font-size: 1.2em;
+        }
+
+        .popup-content h3 {
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        .settings-form {
+            display: grid;
+            grid-template-columns: auto auto;
+            gap: 10px 20px;
+          }
+          
+          .settings-form label {
+            font-weight: bold;
+            align-self: center;
+          }
+          
+          .settings-form input {
+            width: 60px;
+            padding: 5px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+          }
+
+        .settings-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .settings-buttons button {
+            padding: 8px 12px;
+            font-size: 1em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-save {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn-apply {
+            background-color: #2196F3;
+            color: white;
+        }
+
+        .btn-select {
+            background-color: #ff9800;
+            color: white;
+        }
+
+        .button-container {
+            display: flex;
+            gap: 10px;
+            /* Відстань між кнопками */
+            justify-content: center;
+            /* Вирівнювання по центру */
+            margin-top: 20px;
+            /* Відступ зверху */
+        }
+        .settings-btn {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+        }
+        .settings-select {
+            width: 100%;
+            padding: 10px;
+            font-size: 1em;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            color: #333;
+            margin-top: 10px;
+          }
+          
+          .settings-select option {
+            padding: 10px;
+          }
+    </style>
+</head>
+
+<body>
+
+    <h1 class="header">Лічильник лейкоцитарної формули</h1>
+    <audio id="alertSound" src="https://www.soundjay.com/buttons/beep-03.wav"></audio>
+    <div class="container">
+        <div class="counter-grid">
+            <div class="counter-item">
+                <div class="key-label">Паличк.</div>
+                <div class="count" id="countB">0</div>
+            </div>
+            <div class="counter-item">
+                <div class="key-label">Сегм.</div>
+                <div class="count" id="countC">0</div>
+            </div>
+            <div class="counter-item">
+                <div class="key-label">Мон.</div>
+                <div class="count" id="countD">0</div>
+            </div>
+            <div class="counter-item">
+                <div class="key-label">Лімф.</div>
+                <div class="count" id="countE">0</div>
+            </div>
+            <div class="counter-item">
+                <div class="key-label">Еоз.</div>
+                <div class="count" id="countF">0</div>
+            </div>
+            <div class="counter-item">
+                <div class="key-label">Базоф.</div>
+                <div class="count" id="countG">0</div>
+            </div>
+            <div class="counter-item">
+                <div class="key-label">Плазм.кл.</div>
+                <div class="count" id="countH">0</div>
+            </div>
+            <div class="counter-item">
+                <div class="key-label">Метамієл.</div>
+                <div class="count" id="countI">0</div>
+            </div>
+            <div class="counter-item">
+                <div class="key-label">Мієл.</div>
+                <div class="count" id="countJ">0</div>
+            </div>
+            <div class="counter-item">
+                <div class="key-label">Промієл.</div>
+                <div class="count" id="countK">0</div>
+            </div>
+            <div class="total-item">
+                <div class="total-label">Загальна</div>
+                <div class="count" id="totalCount">0</div>
+            </div>
+        </div>
+
+        <div class="counter-grid">
+            <div class="percentage-item">
+                <div class="key-label">Паличк.</div>
+                <div class="percentage" id="percentB">0%</div>
+            </div>
+            <div class="percentage-item">
+                <div class="key-label">Сегм.</div>
+                <div class="percentage" id="percentC">0%</div>
+            </div>
+            <div class="percentage-item">
+                <div class="key-label">Мон.</div>
+                <div class="percentage" id="percentD">0%</div>
+            </div>
+            <div class="percentage-item">
+                <div class="key-label">Лімф.</div>
+                <div class="percentage" id="percentE">0%</div>
+            </div>
+            <div class="percentage-item">
+                <div class="key-label">Еоз.</div>
+                <div class="percentage" id="percentF">0%</div>
+            </div>
+            <div class="percentage-item">
+                <div class="key-label">Базоф.</div>
+                <div class="percentage" id="percentG">0%</div>
+            </div>
+            <div class="percentage-item">
+                <div class="key-label">Плазм.кл.</div>
+                <div class="percentage" id="percentH">0%</div>
+            </div>
+            <div class="percentage-item">
+                <div class="key-label">Метамієл.</div>
+                <div class="percentage" id="percentI">0%</div>
+            </div>
+            <div class="percentage-item">
+                <div class="key-label">Мієл.</div>
+                <div class="percentage" id="percentJ">0%</div>
+            </div>
+            <div class="percentage-item">
+                <div class="key-label">Промієл.</div>
+                <div class="percentage" id="percentK">0%</div>
+            </div>
+        </div>
+
+        <div class="switch-container">
+            <div id="switch100" class="switch-option switch-selected">100</div>
+            <div id="switch200" class="switch-option">200</div>
+            <div id="switch500" class="switch-option">500</div>
+        </div>
+
+        <div class="button-container">
+            <button class="settings-btn" onclick="openSettings()">Налаштування</button>
+            <button class="settings-btn" onclick="resetCounts()">Скинути</button>
+        </div>
+    </div>
+
+    <!-- Pop-up для налаштувань -->
+    <div class="popup-overlay" id="settingsPopup">
+        <div class="popup-content">
+            <span class="popup-close" onclick="closeSettings()">✖</span>
+            <h3>Налаштування лічильників</h3>
+
+            <!-- Налаштування клавіш -->
+            <div class="settings-form" id="settingsForm"></div>
+
+            <!-- Вибір профілю (випадаючий список) -->
+            <select id="profileSelect" class="settings-select" onchange="loadProfile(this.value)">
+                <option value="">-- Виберіть профіль --</option>
+              </select>
+
+            <div class="settings-buttons">
+                <button class="btn-save" onclick="saveSettings()">Зберегти як профіль</button>
+                <button class="btn-apply" onclick="applySettings()">Застосувати</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const switchValues = [100, 200, 500];
+        const alertSound = document.getElementById("alertSound");
+        let limitReached = false;
+        let switchIndex = 0;
+        let counts = { B: 0, C: 0, D: 0, E: 0, F: 0, G: 0, H: 0, I: 0, J: 0, K: 0 };
+        let totalCount = 0;
+        let history = [];
+        let cancelKey = "z"; // Клавіша для скасування
+        let switchLenKey = "m"
+        let keysMap = { B: "b", C: "c", D: "d", E: "e", F: "f", G: "g", H: "h", I: "i", J: "j", K: "k" };
+        let profiles = {}; // Збережені профілі налаштувань
+
+        function updateKeysMap() {
+            const inputs = document.querySelectorAll("#settingsForm input");
+            inputs.forEach(input => {
+              const key = input.getAttribute("data-key");
+              keysMap[key] = input.value.toLowerCase();
+            });
+          }
+
+        function updateSwitchDisplay() {
+            document.getElementById("switch100").classList.toggle("switch-selected", switchIndex === 0);
+            document.getElementById("switch200").classList.toggle("switch-selected", switchIndex === 1);
+            document.getElementById("switch500").classList.toggle("switch-selected", switchIndex === 2);
+        }
+
+        document.getElementById("switch100").addEventListener("click", () => { switchIndex = 0; updateSwitchDisplay(); });
+        document.getElementById("switch200").addEventListener("click", () => { switchIndex = 1; updateSwitchDisplay(); });
+        document.getElementById("switch500").addEventListener("click", () => { switchIndex = 2; updateSwitchDisplay(); });
+
+
+        function openSettings() {
+            document.getElementById("settingsPopup").classList.add("show");
+            generateSettingsForm();
+            document.getElementById("cancelKeyInput").value = cancelKey;
+        }
+
+        function closeSettings() {
+            document.getElementById("settingsPopup").classList.remove("show");
+        }
+
+        function generateSettingsForm() {
+            const form = document.getElementById("settingsForm");
+            form.innerHTML = "";
+            form.style.display = "grid";
+            form.style.gridTemplateColumns = "auto auto";
+            form.style.gap = "10px 20px";
+          
+            const labels = ["Паличк.", "Сегм.", "Мон.", "Лімф.", "Еоз.", "Базоф.", "Плазм.кл.", "Метамієл.", "Мієл.", "Промієл."];
+          
+            Object.keys(keysMap).forEach((key, index) => {
+              const label = document.createElement("label");
+              label.textContent = labels[index] + ": ";
+              label.style.fontWeight = "bold";
+              label.style.alignSelf = "center";
+          
+              const input = document.createElement("input");
+              input.value = keysMap[key];
+              input.setAttribute("data-key", key);
+              input.maxLength = 1;
+              input.style.width = "60px";
+              input.style.padding = "5px";
+              input.style.textAlign = "center";
+              input.style.border = "1px solid #ccc";
+              input.style.borderRadius = "4px";
+          
+              form.appendChild(label);
+              form.appendChild(input);
+            });
+          }
+
+        function applySettings() {
+            updateKeysMap(); // Оновлюємо keysMap з новими значеннями
+            cancelKey = document.getElementById("cancelKeyInput").value.toLowerCase();
+            closeSettings();
+          }
+        
+        function saveSettings() {
+            const profileName = prompt("Введіть назву профілю:");
+            if (!profileName) return;
+            const profile = { keysMap: { ...keysMap }, cancelKey };
+            profiles[profileName] = profile;
+            alert(`Профіль "${profileName}" збережено!`);
+        }
+
+        function openSettings() {
+            document.getElementById("settingsPopup").classList.add("show");
+            generateSettingsForm();
+            document.getElementById("cancelKeyInput").value = cancelKey;
+        }
+
+        function closeSettings() {
+            document.getElementById("settingsPopup").classList.remove("show");
+        }
+
+        function generateSettingsForm() {
+            const form = document.getElementById("settingsForm");
+            form.innerHTML = "";
+            form.style.display = "grid";
+            form.style.gridTemplateColumns = "1fr 1fr";
+            form.style.gap = "10px";
+            
+            const labels = ["Паличк.", "Сегм.", "Мон.", "Лімф.", "Еоз.", "Базоф.", "Плазм.кл.", "Метамієл.", "Мієл.", "Промієл."];
+        
+            Object.keys(keysMap).forEach((key, index) => {
+                const container = document.createElement("div");
+                container.style.display = "flex";
+                container.style.alignItems = "center";
+                container.style.justifyContent = "space-between";
+        
+                const label = document.createElement("label");
+                label.textContent = labels[index];
+                label.style.fontWeight = "bold";
+                label.style.marginRight = "10px";
+        
+                const input = document.createElement("input");
+                input.value = keysMap[key];
+                input.setAttribute("data-key", key);
+                input.maxLength = 1;
+                input.style.width = "50px";
+                input.style.padding = "5px";
+                input.style.textAlign = "center";
+                input.style.borderRadius = "4px";
+                input.style.border = "1px solid #ccc";
+        
+                container.appendChild(label);
+                container.appendChild(input);
+                form.appendChild(container);
+            });
+        }
+
+        // Оновлюємо випадаючий список профілів
+        function updateProfileList() {
+            const profileSelect = document.getElementById("profileSelect");
+            profileSelect.innerHTML = '<option value="">-- Виберіть профіль --</option>';
+          
+            Object.keys(profiles).forEach(profileName => {
+              const option = document.createElement("option");
+              option.value = profileName;
+              option.textContent = profileName;
+              profileSelect.appendChild(option);
+            });
+          
+            // Стиль для профілю вибору
+            profileSelect.style.padding = "10px";
+            profileSelect.style.fontSize = "1em";
+            profileSelect.style.borderRadius = "5px";
+            profileSelect.style.border = "1px solid #ccc";
+            profileSelect.style.backgroundColor = "#f9f9f9";
+            profileSelect.style.color = "#333";
+            profileSelect.style.marginTop = "10px";
+          }
+
+          function loadProfile(profileName) {
+            const profile = profiles[profileName];
+            if (profile) {
+              keysMap = { ...profile.keysMap };
+              cancelKey = profile.cancelKey;
+              // Оновлюємо форму налаштувань з новими значеннями клавіш
+              generateSettingsForm();
+              // Оновлюємо поле для скасування
+              document.getElementById("cancelKeyInput").value = cancelKey;
+              alert(`Профіль "${profileName}" активовано!`);
+            }
+          }
+
+        // Зберігаємо профіль і оновлюємо список
+        function saveSettings() {
+            const profileName = prompt("Введіть назву профілю:");
+            if (!profileName) return;
+            profiles[profileName] = { keysMap: { ...keysMap }, cancelKey };
+            alert(`Профіль "${profileName}" збережено!`);
+            updateProfileList();
+        }
+
+        // Ініціалізація списку профілів під час відкриття налаштувань
+        function openSettings() {
+            document.getElementById("settingsPopup").classList.add("show");
+            generateSettingsForm();
+            document.getElementById("cancelKeyInput").value = cancelKey;
+            updateProfileList();
+        }
+
+
+        function updateDisplay() {
+            document.getElementById("totalCount").textContent = totalCount;
+            for (const [symbol, count] of Object.entries(counts)) {
+                document.getElementById("count" + symbol).textContent = count;
+                const percentage = totalCount > 0 ? ((count / totalCount) * 100).toFixed(1) : 0;
+                document.getElementById("percent" + symbol).textContent = percentage + "%";
+            }
+        }
+
+        function removeLast() {
+            if (history.length > 0) {
+                const lastKey = history.pop();
+                if (counts[lastKey] > 0) {
+                    counts[lastKey]--;
+                    totalCount--;
+                    updateDisplay();
+                }
+            }
+        }
+
+        function checkLimit() {
+            limitReached = false;
+            if (totalCount >= switchValues[switchIndex]) {
+                limitReached = true;
+                document.body.style.backgroundColor = 'rgba(255, 0, 0, 0.2)';
+                alertSound.play().catch(error => console.log("Відтворення звуку заблоковано:", error));
+                setTimeout(() => { document.body.style.backgroundColor = '#f4f4f4'; }, 2000);
+            }
+        }
+
+        document.addEventListener("keydown", function (event) {
+            const key = event.key.toLowerCase();
+            if (key === cancelKey) {
+                removeLast();
+                return;
+            }
+            if (key === switchLenKey && switchIndex < switchValues.length - 1) { // Якщо натиснута клавіша M і ще не досягнуто останнього значення
+                switchIndex++;
+                updateSwitchDisplay(); // Оновлюємо відображення перемикача
+              }
+            checkLimit();
+            if (limitReached) return;
+            const targetKey = Object.keys(keysMap).find(k => keysMap[k] === key);
+            if (targetKey) {
+                counts[targetKey]++;
+                totalCount++;
+                history.push(targetKey);
+                updateDisplay();
+            }
+        });
+
+        function resetCounts() {
+            // Очищаємо всі лічильники
+            Object.keys(counts).forEach(key => {
+                counts[key] = 0;
+                document.getElementById("count" + key).textContent = "0";
+                document.getElementById("percent" + key).textContent = "0%";
+            });
+
+            // Очищаємо загальну кількість і оновлюємо відображення
+            totalCount = 0;
+            document.getElementById("totalCount").textContent = "0";
+        }
+
+        window.addEventListener("beforeunload", function (event) {
+            // Стандартний спосіб додати текст для попередження (в деяких браузерах він може ігноруватися)
+            event.preventDefault();
+            event.returnValue = ""; // Обов'язково для деяких браузерів
+        });
+    </script>
+
+</body>
+
+</html>
