@@ -20,6 +20,7 @@
             transition: background-color 0.3s;
             padding-top: 20px;
             /* Трохи місця над заголовком */
+            padding: 0 10px;
         }
 
         .header {
@@ -45,9 +46,11 @@
 
         .counter-grid {
             display: grid;
-            grid-template-columns: repeat(11, 100px) 140px;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
             grid-gap: 10px;
-            margin-bottom: 20px;
+            width: 100%;
+            max-width: 1200px; /* Задайте максимальну ширину сітки */
+            margin: 0 auto; /* Вирівнювання по центру */
         }
 
         .counter-item,
@@ -232,6 +235,29 @@
           .settings-select option {
             padding: 10px;
           }
+        @media (max-width: 768px) {
+            .header {
+                font-size: 2em;
+                padding: 5px;
+            }
+            
+            .key-label {
+                font-size: 0.8em;
+            }
+            
+            .count, .percentage {
+                font-size: 1.2em;
+            }
+        
+            .settings-btn {
+                font-size: 0.9em;
+                padding: 8px 15px;
+            }
+            
+            .counter-grid {
+                grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* Менший мінімальний розмір елементів */
+            }
+        }
     </style>
 </head>
 
